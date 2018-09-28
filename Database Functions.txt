@@ -1,0 +1,66 @@
+
+    Dim cnn = New OleDbConnection("Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Database1.mdb;")
+    Dim cmd As New OleDbCommand
+
+
+
+    Private Sub ShowDataInListView(ByVal data As DataTable, ByVal lvw As ListView)
+        lvw.View = View.Details
+        lvw.GridLines = True
+        lvw.Columns.Clear()
+        lvw.Items.Clear()
+        For Each col As DataColumn In data.Columns
+            lvw.Columns.Add(col.ToString)
+        Next
+        For Each row As DataRow In data.Rows
+            Dim lst As ListViewItem
+            lst = lvw.Items.Add(If(row(0) IsNot Nothing, row(0).ToString, ""))
+            For i As Integer = 1 To data.Columns.Count - 1
+                lst.SubItems.Add(If(row(i) IsNot Nothing, row(i).ToString, ""))
+            Next
+        Next
+    End Sub
+
+
+    Function UpdateDatabase(sql As String) As Integer
+        Dim iSqlStatus As Integer
+
+        Try
+            cmd.Connection = cnn
+            cmd.CommandText = sql
+            cnn.Open()
+            iSqlStatus = cmd.ExecuteNonQuery()       '0=falied | 1=success
+            UpdateDatabase = iSqlStatus
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "Error")
+            UpdateDatabase = 0
+        Finally
+            cnn.Close()
+        End Try
+
+    End Function
+
+
+    Function ReadDatabase(sql As String) As DataTable
+
+        Try
+            cmd.Connection = cnn
+            cmd.CommandText = sql
+            cnn.Open()
+
+            Dim reader As OleDbDataReader = cmd.ExecuteReader()
+            Dim dt As DataTable = New DataTable()
+            dt.Load(reader)
+            ReadDatabase = dt
+            reader.Close()
+
+        Catch ex As Exception
+            MessageBox.Show(ex.Message, "Error")
+            ReadDatabase = Nothing
+        Finally
+            cnn.Close()
+        End Try
+
+    End Function
+
+End Class
